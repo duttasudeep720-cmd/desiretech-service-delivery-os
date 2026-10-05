@@ -38,11 +38,67 @@ export function useEmailStatus() {
 
 // -> { ok: true, status: 'sent', sentAt, from }   ("sent" = accepted by Google Apps Script/MailApp, NOT confirmed delivered)
 //  | { ok: false, message, attempted }            attempted=true when a real send was tried and failed (record it as Failed)
-export async function sendEmail({ to, subject, message, communicationId, clientId = '', leadId = '' }) {
-  if (!ENDPOINT || !KEY) return { ok: false, message: NOT_CONFIGURED_MSG, attempted: false };
-  const r = await call({ method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to, subject, message, communicationId, clientId, leadId }) });
-  if (!r) return { ok: false, message: UNAVAILABLE_MSG, attempted: false };
+export async function sendEmail({
+  to,
+  subject,
+  message,
+  communicationId,
+  clientId = '',
+  leadId = '',
+  attachments = []
+}) {
+  if (!ENDPOINT || !KEY) {
+    return {
+      ok: false,
+      message: NOT_CONFIGURED_MSG,
+      attempted: false
+    };
+  }
+
+  const r = await call({
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      to,
+      subject,
+      message,
+      communicationId,
+      clientId,
+      leadId,
+      attachments
+    })
+  });
+
+  if (!r) {
+    return {
+      ok: false,
+      message: UNAVAILABLE_MSG,
+      attempted: false
+    };
+  }
+
   const d = r.data || {};
-  if (r.status === 200 && d.ok === true && d.status === 'sent') return { ok: true, status: 'sent', sentAt: d.sentAt || '', from: d.from || '' };
-  return { ok: false, message: typeof d.message === 'string' && d.message ? d.message : SEND_FAILED_MSG, attempted: d.attempted === true };
+
+  if (
+    r.status === 200 &&
+    d.ok === true &&
+    (d.status === 'sent' || d.duplicate === true)
+  ) {
+    return {
+      ok: true,
+      status: 'sent',
+      sentAt: d.sentAt || '',
+      from: d.from || '',
+      attachmentCount: d.attachmentCount || 0
+    };
+  }
+
+  return {
+    ok: false,
+    message:
+      typeof d.message === 'string' && d.message
+        ? d.message
+        : SEND_FAILED_MSG,
+    attempted: d.attempted === true
+  };
 }
