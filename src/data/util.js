@@ -1,0 +1,13 @@
+export const uid = p => p + '_' + Math.random().toString(36).slice(2, 9);
+const p2 = n => String(n).padStart(2, '0');
+export const fmtISO = d => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+export const today = () => fmtISO(new Date());
+export const ym = d => `${d.getFullYear()}-${p2(d.getMonth() + 1)}`;
+const parts = m => m.split('-').map(Number);
+export const addMonth = (m, n) => { const [y, mo] = parts(m); return ym(new Date(y, mo - 1 + n, 1)); };
+export const lastDay = m => { const [y, mo] = parts(m); return new Date(y, mo, 0).getDate(); };
+export const iso = (m, d) => `${m}-${p2(Math.min(d, lastDay(m)))}`;
+export const addDays = (s, n) => { const [y, m, d] = parts(s); return fmtISO(new Date(y, m - 1, d + n)); };
+export const monthLabel = m => { const [y, mo] = parts(m); return new Date(y, mo - 1, 1).toLocaleString('en-IN', { month: 'long', year: 'numeric' }); };
+export const fmtDate = s => { if (!s) return '—'; const [y, m, d] = parts(s); return new Date(y, m - 1, d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); };
+export const diffDays = (a, b) => { if (!a || !b) return 0; const [y1, m1, d1] = parts(a), [y2, m2, d2] = parts(b); return Math.round((new Date(y2, m2 - 1, d2) - new Date(y1, m1 - 1, d1)) / 864e5); };

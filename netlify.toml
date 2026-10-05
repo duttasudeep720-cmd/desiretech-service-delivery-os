@@ -1,0 +1,11 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  [build.environment]
+    NODE_VERSION = "20"
+
+# Single-page app fallback. (Email is sent by Supabase Edge Functions + Google Apps Script; no Netlify Functions are used.)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
